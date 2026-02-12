@@ -306,36 +306,33 @@ elif page == "➕ รับเข้า":
     if not items:
         st.warning("ยังไม่มีสินค้าในระบบ กรุณาเพิ่มสินค้าก่อน")
     else:
-        with st.form("stock_in_form", clear_on_submit=True):
-            item_options = {f"{it['รหัส']} — {it['รายการวัตถุดิบ']} ({it['คงเหลือจริง']:.1f} {it['หน่วยนับ']})": it for it in items}
-            selected_label = st.selectbox("🔍 เลือกวัตถุดิบ", options=list(item_options.keys()))
-            selected_item = item_options[selected_label]
+        item_options = {f"{it['รหัส']} — {it['รายการวัตถุดิบ']} ({it['คงเหลือจริง']:.1f} {it['หน่วยนับ']})": it for it in items}
+        selected_label = st.selectbox("🔍 เลือกวัตถุดิบ", options=list(item_options.keys()), key="si_item")
+        selected_item = item_options[selected_label]
 
-            rc1, rc2 = st.columns(2)
-            qty = rc1.number_input(
-                f"จำนวนที่รับเข้า ({selected_item['หน่วยนับ']})",
-                min_value=0.1, step=1.0, value=1.0,
-            )
-            requester = rc2.text_input("👤 ผู้ทำรายการ", placeholder="เช่น a001")
+        rc1, rc2 = st.columns(2)
+        qty = rc1.number_input(
+            f"จำนวนที่รับเข้า ({selected_item['หน่วยนับ']})",
+            min_value=0.1, step=1.0, value=1.0, key="si_qty",
+        )
+        requester = rc2.text_input("👤 ผู้ทำรายการ", placeholder="เช่น a001", key="si_req")
 
-            submitted = st.form_submit_button("➕ บันทึกรับเข้า", use_container_width=True)
-
-            if submitted:
-                if qty <= 0:
-                    st.error("❌ กรุณาระบุจำนวนที่มากกว่า 0")
-                elif not requester:
-                    st.error("❌ กรุณาระบุชื่อผู้ทำรายการ")
-                else:
-                    order = db.add_transaction(
-                        selected_item["รหัส"],
-                        selected_item["รายการวัตถุดิบ"],
-                        "รับเข้า",
-                        qty,
-                        selected_item["อายุการเก็บ (วัน)"],
-                        requester,
-                    )
-                    st.success(f"✅ รับเข้า **{selected_item['รายการวัตถุดิบ']}** จำนวน **{qty:.1f} {selected_item['หน่วยนับ']}** — Order: {order}")
-                    st.rerun()
+        if st.button("➕ บันทึกรับเข้า", use_container_width=True, key="si_submit"):
+            if qty <= 0:
+                st.error("❌ กรุณาระบุจำนวนที่มากกว่า 0")
+            elif not requester:
+                st.error("❌ กรุณาระบุชื่อผู้ทำรายการ")
+            else:
+                order = db.add_transaction(
+                    selected_item["รหัส"],
+                    selected_item["รายการวัตถุดิบ"],
+                    "รับเข้า",
+                    qty,
+                    selected_item["อายุการเก็บ (วัน)"],
+                    requester,
+                )
+                st.success(f"✅ รับเข้า **{selected_item['รายการวัตถุดิบ']}** จำนวน **{qty:.1f} {selected_item['หน่วยนับ']}** — Order: {order}")
+                st.rerun()
 
         # ── Today's stock-in ──
         st.markdown("---")
@@ -363,42 +360,40 @@ elif page == "🔻 จ่ายออก":
     if not items:
         st.warning("ยังไม่มีสินค้าในระบบ กรุณาเพิ่มสินค้าก่อน")
     else:
-        with st.form("stock_out_form", clear_on_submit=True):
-            item_options = {f"{it['รหัส']} — {it['รายการวัตถุดิบ']} (คงเหลือ {it['คงเหลือจริง']:.1f} {it['หน่วยนับ']})": it for it in items}
-            selected_label = st.selectbox("🔍 เลือกวัตถุดิบ", options=list(item_options.keys()))
-            selected_item = item_options[selected_label]
+        item_options = {f"{it['รหัส']} — {it['รายการวัตถุดิบ']} (คงเหลือ {it['คงเหลือจริง']:.1f} {it['หน่วยนับ']})": it for it in items}
+        selected_label = st.selectbox("🔍 เลือกวัตถุดิบ", options=list(item_options.keys()), key="so_item")
+        selected_item = item_options[selected_label]
 
-            wc1, wc2 = st.columns(2)
-            max_qty = float(selected_item["คงเหลือจริง"]) if selected_item["คงเหลือจริง"] > 0 else 0.1
-            qty = wc1.number_input(
-                f"จำนวนที่จ่ายออก ({selected_item['หน่วยนับ']})",
-                min_value=0.1,
-                max_value=max_qty,
-                step=1.0,
-                value=min(1.0, max_qty),
-            )
-            requester = wc2.text_input("� ผู้ทำรายการ", placeholder="เช่น a002")
+        wc1, wc2 = st.columns(2)
+        max_qty = float(selected_item["คงเหลือจริง"]) if selected_item["คงเหลือจริง"] > 0 else 0.1
+        qty = wc1.number_input(
+            f"จำนวนที่จ่ายออก ({selected_item['หน่วยนับ']})",
+            min_value=0.1,
+            max_value=max_qty,
+            step=1.0,
+            value=min(1.0, max_qty),
+            key="so_qty",
+        )
+        requester = wc2.text_input("👤 ผู้ทำรายการ", placeholder="เช่น a002", key="so_req")
 
-            submitted = st.form_submit_button("🔻 บันทึกจ่ายออก", use_container_width=True)
-
-            if submitted:
-                if qty <= 0:
-                    st.error("❌ กรุณาระบุจำนวนที่มากกว่า 0")
-                elif qty > selected_item["คงเหลือจริง"]:
-                    st.error(f"❌ จำนวนไม่เพียงพอ! คงเหลือเพียง {selected_item['คงเหลือจริง']:.1f} {selected_item['หน่วยนับ']}")
-                elif not requester:
-                    st.error("❌ กรุณาระบุชื่อผู้ทำรายการ")
-                else:
-                    order = db.add_transaction(
-                        selected_item["รหัส"],
-                        selected_item["รายการวัตถุดิบ"],
-                        "จ่ายออก",
-                        qty,
-                        selected_item["อายุการเก็บ (วัน)"],
-                        requester,
-                    )
-                    st.success(f"✅ จ่ายออก **{selected_item['รายการวัตถุดิบ']}** จำนวน **{qty:.1f} {selected_item['หน่วยนับ']}** — Order: {order}")
-                    st.rerun()
+        if st.button("🔻 บันทึกจ่ายออก", use_container_width=True, key="so_submit"):
+            if qty <= 0:
+                st.error("❌ กรุณาระบุจำนวนที่มากกว่า 0")
+            elif qty > selected_item["คงเหลือจริง"]:
+                st.error(f"❌ จำนวนไม่เพียงพอ! คงเหลือเพียง {selected_item['คงเหลือจริง']:.1f} {selected_item['หน่วยนับ']}")
+            elif not requester:
+                st.error("❌ กรุณาระบุชื่อผู้ทำรายการ")
+            else:
+                order = db.add_transaction(
+                    selected_item["รหัส"],
+                    selected_item["รายการวัตถุดิบ"],
+                    "จ่ายออก",
+                    qty,
+                    selected_item["อายุการเก็บ (วัน)"],
+                    requester,
+                )
+                st.success(f"✅ จ่ายออก **{selected_item['รายการวัตถุดิบ']}** จำนวน **{qty:.1f} {selected_item['หน่วยนับ']}** — Order: {order}")
+                st.rerun()
 
         # ── Today's stock-out ──
         st.markdown("---")
