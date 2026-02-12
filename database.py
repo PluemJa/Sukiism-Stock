@@ -11,7 +11,17 @@ import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime, date, timedelta
+from zoneinfo import ZoneInfo
 import time
+
+# ─── Timezone ────────────────────────────────────────────────────────────────
+
+BANGKOK_TZ = ZoneInfo("Asia/Bangkok")
+
+
+def thai_today() -> date:
+    """Return today's date in Bangkok timezone."""
+    return datetime.now(BANGKOK_TZ).date()
 
 # ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -293,7 +303,7 @@ def get_transactions(date_filter: date | None = None, tx_type: str | None = None
 
 def get_today_transaction_count() -> int:
     """Count today's transactions (uses cache)."""
-    today_str = date.today().strftime("%d/%m/%y")
+    today_str = thai_today().strftime("%d/%m/%y")
     txs = get_all_transactions()
     return sum(1 for t in txs if t["วันที่"] == today_str)
 
@@ -432,7 +442,7 @@ def add_transaction(item_code: str, item_name: str, tx_type: str,
     """Add a transaction — uses batch_update for atomic write."""
     ws = get_tx_sheet()
 
-    today = date.today()
+    today = thai_today()
     today_str = today.strftime("%d/%m/%y")
     life_date = today + timedelta(days=shelf_life)
     life_str = life_date.strftime("%d/%m/%y")

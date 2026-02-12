@@ -138,7 +138,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown(
         f"<p style='font-size:0.75rem;color:#94a3b8;text-align:center;'>"
-        f"📅 {date.today().strftime('%d/%m/%Y')}<br>Sukiism Stock v2.0</p>",
+        f"📅 {db.thai_today().strftime('%d/%m/%Y')}<br>Sukiism Stock v2.0</p>",
         unsafe_allow_html=True,
     )
 
@@ -337,7 +337,7 @@ elif page == "➕ รับเข้า":
         # ── Today's stock-in ──
         st.markdown("---")
         st.markdown("### 📝 รายการรับเข้าวันนี้")
-        today_txs = db.get_transactions(date_filter=date.today(), tx_type="รับเข้า")
+        today_txs = db.get_transactions(date_filter=db.thai_today(), tx_type="รับเข้า")
         if today_txs:
             df = pd.DataFrame(today_txs)
             df = df[["Order", "รหัส", "รายการ", "จำนวน", "life", "requestner"]]
@@ -398,7 +398,7 @@ elif page == "🔻 จ่ายออก":
         # ── Today's stock-out ──
         st.markdown("---")
         st.markdown("### 📝 รายการจ่ายออกวันนี้")
-        today_txs = db.get_transactions(date_filter=date.today(), tx_type="จ่ายออก")
+        today_txs = db.get_transactions(date_filter=db.thai_today(), tx_type="จ่ายออก")
         if today_txs:
             df = pd.DataFrame(today_txs)
             df = df[["Order", "รหัส", "รายการ", "จำนวน", "requestner"]]
@@ -422,7 +422,7 @@ elif page == "📋 Transactions":
     st.markdown("### 🔍 ตัวกรอง")
     fc1, fc2, fc3 = st.columns(3)
 
-    filter_date = fc1.date_input("📅 วันที่", value=date.today())
+    filter_date = fc1.date_input("📅 วันที่", value=db.thai_today())
 
     filter_type = fc2.selectbox("📂 ประเภท", ["ทั้งหมด", "รับเข้า", "จ่ายออก"])
     filter_tx_type = None if filter_type == "ทั้งหมด" else filter_type
